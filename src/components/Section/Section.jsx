@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
-import { Tabs, Tab } from "@mui/material";
+import { Tabs, Tab, CircularProgress } from "@mui/material";
 import Card from "../Card/Card";
 import styles from "./Section.module.css";
 
@@ -12,18 +12,18 @@ function Section({ title, apiEndpoint, showAll = false, onShowAllClick, showLike
   const [collapsed, setCollapsed] = useState(true);
   const [cardsToShow, setCardsToShow] = useState(6);
   const [selectedTab, setSelectedTab] = useState(0);
+  const scrollContainerRef = useRef(null);
 
   // Calculate how many cards fit in the window
   useEffect(() => {
     const calculateCardsToShow = () => {
-      const cardWidth = 159; // Card width in pixels
-      const gap = 20; // Gap between cards
+      const cardWidth = 171; // Card width + gap
       const padding = 64; // Total padding (32px on each side)
       const availableWidth = window.innerWidth - padding;
       
-      // Calculate how many full cards can fit
-      const numCards = Math.floor((availableWidth + gap) / (cardWidth + gap));
-      setCardsToShow(Math.max(numCards, 1)); // At least 1 card
+      // Calculate how many full cards can fit - limit to 6 max
+      const numCards = Math.floor(availableWidth / cardWidth);
+      setCardsToShow(Math.min(Math.max(numCards, 2), 6));
     };
 
     calculateCardsToShow();
@@ -82,6 +82,24 @@ function Section({ title, apiEndpoint, showAll = false, onShowAllClick, showLike
     setSelectedTab(newValue);
   };
 
+  const handlePrevClick = () => {
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollBy({
+        left: -340,
+        behavior: "smooth"
+      });
+    }
+  };
+
+  const handleNextClick = () => {
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollBy({
+        left: 340,
+        behavior: "smooth"
+      });
+    }
+  };
+
   // Filter items by selected genre
   const getFilteredItems = () => {
     if (!isSongsSection || genres.length === 0) {
@@ -100,8 +118,8 @@ function Section({ title, apiEndpoint, showAll = false, onShowAllClick, showLike
   if (error) return <div className={styles.section}>{error}</div>;
 
   const filteredItems = getFilteredItems();
-  // Show cards that fit in window when collapsed, all when expanded
-  const displayItems = !loading ? (collapsed ? filteredItems.slice(0, cardsToShow) : filteredItems) : [];
+  // Always show all items, carousel handles limiting the viewport
+  const displayItems = !loading ? filteredItems : [];
 
   return (
     <div className={styles.section}>
@@ -133,19 +151,47 @@ function Section({ title, apiEndpoint, showAll = false, onShowAllClick, showLike
       )}
 
       {loading ? (
-        <div>Loading songs...</div>
-      ) : (
-        <div className={styles.cardsContainer}>
-            {displayItems.map((item) => (
-                <Card
-                    key={item.id}
+        <div className={styles.spinnerContainer}>
+          <CircularProgress sx={{ color: "#34c94b" }} />
+        </div>
+      ) : collapsed ? (
+        <div className={styles.carouselContainer}>
+          <button onClick={handlePrevClick} className={`${styles.navButton} ${styles.swiperPrevButton}`}>
+            &#10094;
+          </button>
+          
+          <div ref={scrollContainerRef} className={styles.scrollContainer}>
+            <div className={styles.cardsWrapper}>
+              {displayItems.map((item) => (
+                <div key={item.id} className={styles.cardItem}>
+                  <Card
                     image={item.image}
                     title={item.title}
                     follows={item.follows}
                     likes={item.likes}
                     showLikes={showLikes}
-                />
-            ))}
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+          
+          <button onClick={handleNextClick} className={`${styles.navButton} ${styles.swiperNextButton}`}>
+            &#10095;
+          </button>
+        </div>
+      ) : (
+        <div className={styles.cardsContainer}>
+          {displayItems.map((item) => (
+            <Card
+              key={item.id}
+              image={item.image}
+              title={item.title}
+              follows={item.follows}
+              likes={item.likes}
+              showLikes={showLikes}
+            />
+          ))}
         </div>
       )}
     </div>
