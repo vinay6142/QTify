@@ -3,6 +3,7 @@ import './App.css';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Navbar from './components/Navbar/Navbar';
 import Hero from './components/Hero/Hero';
+import Section from './components/Section/Section';
 
 function App() {
   const [searchData, setSearchData] = useState([]);
@@ -22,7 +23,22 @@ function App() {
       <div className="App">
         <Navbar searchData={searchData} />
         <Routes>
-          <Route path="/" element={<Hero />} />
+          <Route 
+            path="/" 
+            element={
+              <>
+                <Hero />
+                <Section 
+                  title="Top Albums" 
+                  apiEndpoint="https://qtify-backend.labs.crio.do/albums/top"
+                />
+                <Section 
+                  title="New Albums" 
+                  apiEndpoint="https://qtify-backend.labs.crio.do/albums/new"
+                />
+              </>
+            } 
+          />
           <Route path="/album/:slug" element={<div>Album Page - Coming Soon</div>} />
         </Routes>
       </div>
