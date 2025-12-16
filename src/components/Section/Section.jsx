@@ -1,6 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { Tabs, Tab } from "@mui/material";
+import { Swiper, SwiperSlide } from "swiper/react";
+import { Navigation } from "swiper/modules";
+import "swiper/css";
+import "swiper/css/navigation";
 import Card from "../Card/Card";
 import styles from "./Section.module.css";
 
@@ -12,6 +16,7 @@ function Section({ title, apiEndpoint, showAll = false, onShowAllClick, showLike
   const [collapsed, setCollapsed] = useState(true);
   const [cardsToShow, setCardsToShow] = useState(6);
   const [selectedTab, setSelectedTab] = useState(0);
+  const swiperRef = useRef(null);
 
   // Calculate how many cards fit in the window
   useEffect(() => {
@@ -133,19 +138,39 @@ function Section({ title, apiEndpoint, showAll = false, onShowAllClick, showLike
       )}
 
       {loading ? (
-        <div>Loading songs...</div>
+        <div>Loading {title}...</div>
       ) : (
-        <div className={styles.cardsContainer}>
-          {displayItems.map((item) => (
-            <Card
-              key={item.id}
-              image={item.image}
-              title={item.title}
-              follows={item.follows}
-              likes={item.likes}
-              showLikes={showLikes}
-            />
-          ))}
+        <div className={styles.swiperContainer}>
+          <Swiper
+            ref={swiperRef}
+            modules={[Navigation]}
+            spaceBetween={20}
+            slidesPerView="auto"
+            navigation={{
+              nextEl: `.${styles.swiperNextButton}`,
+              prevEl: `.${styles.swiperPrevButton}`,
+            }}
+            className={styles.swiper}
+          >
+            {displayItems.map((item) => (
+              <SwiperSlide key={item.id} className={styles.swiperSlide}>
+                <Card
+                  image={item.image}
+                  title={item.title}
+                  follows={item.follows}
+                  likes={item.likes}
+                  showLikes={showLikes}
+                />
+              </SwiperSlide>
+            ))}
+          </Swiper>
+          
+          <button className={`${styles.swiperPrevButton} ${styles.navButton}`}>
+            &#10094;
+          </button>
+          <button className={`${styles.swiperNextButton} ${styles.navButton}`}>
+            &#10095;
+          </button>
         </div>
       )}
     </div>
