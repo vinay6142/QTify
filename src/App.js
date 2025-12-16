@@ -34,7 +34,7 @@ function App() {
                 />
                 <Section 
                   title="New Albums" 
-                  apiEndpoint="https://qtify-backend.labs.crio.do/albums/new"
+                  apiEndpoint="https://qtify-backend.labs.crio.do/albums/top"
                 />
               </>
             } 
