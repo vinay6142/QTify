@@ -8,6 +8,25 @@ function Section({ title, apiEndpoint, showAll = false, onShowAllClick }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [collapsed, setCollapsed] = useState(true);
+  const [cardsToShow, setCardsToShow] = useState(6);
+
+  // Calculate how many cards fit in the window
+  useEffect(() => {
+    const calculateCardsToShow = () => {
+      const cardWidth = 159; // Card width in pixels
+      const gap = 20; // Gap between cards
+      const padding = 64; // Total padding (32px on each side)
+      const availableWidth = window.innerWidth - padding;
+      
+      // Calculate how many full cards can fit
+      const numCards = Math.floor((availableWidth + gap) / (cardWidth + gap));
+      setCardsToShow(Math.max(numCards, 1)); // At least 1 card
+    };
+
+    calculateCardsToShow();
+    window.addEventListener("resize", calculateCardsToShow);
+    return () => window.removeEventListener("resize", calculateCardsToShow);
+  }, []);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -41,8 +60,8 @@ function Section({ title, apiEndpoint, showAll = false, onShowAllClick }) {
   if (loading) return <div className={styles.section}>Loading {title}...</div>;
   if (error) return <div className={styles.section}>{error}</div>;
 
-  // Show limited cards when collapsed, all when expanded
-  const displayItems = collapsed ? items.slice(0, 6) : items;
+  // Show cards that fit in window when collapsed, all when expanded
+  const displayItems = collapsed ? items.slice(0, cardsToShow) : items;
 
   return (
     <div className={styles.section}>
